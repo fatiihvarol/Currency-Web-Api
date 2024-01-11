@@ -1,6 +1,7 @@
 using CurrencyApplication.ApplicationConfig;
 using CurrencyApplication.Entity;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json.Linq;
 
 namespace CurrencyApplication.Controllers;
 
@@ -8,44 +9,88 @@ namespace CurrencyApplication.Controllers;
 [ApiController]
 public class CurrencyController : ControllerBase
 {
-
-    private const string BaseUrl = "https://currency-exchange.p.rapidapi.com";
-
-    [HttpGet]
-    public async Task<IActionResult> GetExchange(string fromCurrency)
+    
+    [HttpGet("All")]
+    public  async Task<String> GetAllCurrencies()
     {
-        string body="";
-        var client = new HttpClient();
-        var request = new HttpRequestMessage
-            
+        using (HttpClient client = new HttpClient())
         {
-            Method = HttpMethod.Get,
-            RequestUri = new Uri($"{Config.BaseURL}/latest?from={fromCurrency}"),
-            Headers =
-            {
-                { "X-RapidAPI-Key", $"{Config.APIKEY}" },
-                { "X-RapidAPI-Host", "currency-conversion-and-exchange-rates.p.rapidapi.com" },
-            },
-        };
-        using (var response = await client.SendAsync(request))
-        {
-            response.EnsureSuccessStatusCode();
-            body = await response.Content.ReadAsStringAsync();
-            Console.WriteLine(body);
+            var newApiUrl = Config.BaseURL+Config.endOftheUrl;
+            HttpResponseMessage response = await client.GetAsync(newApiUrl);
+            string content = await response.Content.ReadAsStringAsync();
+            return content;
         }
 
-        return Ok(body);
     }
-    [HttpGet("fromto")]
-    public void GetExchangeRates([FromQuery] CurrencyRequestModel currencyRequestModel)
+    [HttpGet("Exchange")]
+    public async Task<string> GetFromCurrencies([FromQuery] string fromCurrency)
     {
-        
-        /* Console.WriteLine(FinalEndPoint);
-         var client = new HttpClient() ;
-         var response = await client.GetAsync(FinalEndPoint);
-         var content = await response.Content.ReadAsStringAsync();
-         return Ok(content);*/
+        try
+        {
+            using (HttpClient client = new HttpClient())
+            {
+                var apiUrl = $"{Config.BaseURL}/{Uri.EscapeDataString(fromCurrency.ToLower())}{Config.endOftheUrl}";
+
+                Console.WriteLine(apiUrl);
+
+                HttpResponseMessage response = await client.GetAsync(apiUrl);
+                response.EnsureSuccessStatusCode();
+
+                string content = await response.Content.ReadAsStringAsync();
+                return content;
+            }
+        }
+        catch (HttpRequestException ex)
+        {
+            Console.WriteLine($"HTTP isteği sırasında hata oluştu: {ex.Message}");
+            return "Hata oluştu";
+        }
     }
+
+
+
+    [HttpGet("Exchange/{sourceCurrency}/{targetCurrency}")]
+    public async Task<string> GetExchangeRates([FromRoute] string sourceCurrency, [FromRoute] string targetCurrency)
+    {
+        try
+        {
+            using (HttpClient client = new HttpClient())
+            {
+                var apiUrl = $"{Config.BaseURL}/{Uri.EscapeDataString(sourceCurrency.ToLower())}/{Uri.EscapeDataString(targetCurrency.ToLower())}{Config.endOftheUrl}";
+                    
+                HttpResponseMessage response = await client.GetAsync(apiUrl);
+                response.EnsureSuccessStatusCode();
+
+                string content = await response.Content.ReadAsStringAsync();
+                return content;
+            }
+        }
+        catch (HttpRequestException ex)
+        {
+            Console.WriteLine($"HTTP isteği sırasında hata oluştu: {ex.Message}");
+            return "Hata oluştu";
+        }
+    }
+
+    [HttpGet("Convert/{sourceCurrency}/{targetCurrency}")]
+    public async Task<decimal> ConvertCurrency(string sourceCurrency, string targetCurrency, decimal value)
+    {
+        sourceCurrency = sourceCurrency.ToLower();
+        targetCurrency = targetCurrency.ToLower();
+        var newApiUrl = Config.BaseURL + "/" + $"{sourceCurrency}/{targetCurrency}.json";
+
+        using (HttpClient client = new HttpClient())
+        {
+            HttpResponseMessage response = await client.GetAsync(newApiUrl);
+            string content = await response.Content.ReadAsStringAsync();
+            JObject json = JObject.Parse(content);
+            json.TryGetValue(targetCurrency, out var currencyRate);
+            decimal convertedValue = value * ((decimal)currencyRate);
+            return convertedValue;
+        }
+    }
+
+
 
 
  

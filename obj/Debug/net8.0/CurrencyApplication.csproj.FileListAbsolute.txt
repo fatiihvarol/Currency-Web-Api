@@ -30,3 +30,5 @@ C:\Users\fatih\source\repos\CurrencyApplication\CurrencyApplication\obj\Debug\ne
 C:\Users\fatih\source\repos\CurrencyApplication\CurrencyApplication\obj\Debug\net8.0\CurrencyApplication.pdb
 C:\Users\fatih\source\repos\CurrencyApplication\CurrencyApplication\obj\Debug\net8.0\CurrencyApplication.genruntimeconfig.cache
 C:\Users\fatih\source\repos\CurrencyApplication\CurrencyApplication\obj\Debug\net8.0\ref\CurrencyApplication.dll
+C:\Users\fatih\source\repos\CurrencyApplication\CurrencyApplication\obj\Debug\net8.0\CurrencyApplication.sourcelink.json
+C:\Users\fatih\source\repos\CurrencyApplication\CurrencyApplication\bin\Debug\net8.0\Newtonsoft.Json.dll
